@@ -1,3 +1,4 @@
+import FooterComponent from "@/Components/FooterComponents/FooterComponent";
 import NavbarComponent from "@/Components/HeaderComponents/NavbarComponent";
 import React from "react";
 
@@ -7,14 +8,19 @@ type Props = {
 
 const HomePageLayout = ({ children }: Props) => {
   return (
-    <main className="min-h-screen ">
-     <div>
-       <NavbarComponent />
-     </div>
-     <div className="max-w-6xl mx-auto ">
-       {children}
-     </div>
-    </main>
+    <div className="min-h-screen flex flex-col">
+      <header>
+        <NavbarComponent />
+      </header>
+
+      <main className="flex-1 w-full">
+        <div className="max-w-6xl mx-auto px-4">{children}</div>
+      </main>
+
+      <footer>
+        <FooterComponent />
+      </footer>
+    </div>
   );
 };
 

@@ -7,14 +7,14 @@ type Props = {
 
 const HomePageLayout = ({ children }: Props) => {
   return (
-    <div>
+    <main className="min-h-screen ">
      <div>
        <NavbarComponent />
      </div>
-     <div>
+     <div className="max-w-6xl mx-auto ">
        {children}
      </div>
-    </div>
+    </main>
   );
 };
 

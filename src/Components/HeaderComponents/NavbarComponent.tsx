@@ -26,9 +26,9 @@ const NavbarComponent = ( ) => {
 
             </ul>
             <div>
-                <Button className=' px-4 py-1' variant="light">Login</Button>
+                <Button className=' px-4 py-1' variant="light"><Link href="/login">Login</Link></Button>
                 <Button variant="primary" className="ml-2 px-4 py-1 rounded-full">
-                  Register
+                    <Link href="/signup">Sign Up</Link>
                 </Button>
             </div>
         </nav>

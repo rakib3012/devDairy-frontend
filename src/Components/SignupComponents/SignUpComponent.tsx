@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { ImSpinner2 } from "react-icons/im";
 import Link from "next/link";
+import { SignupFormData, useSignup } from "@/lib/hooks/api/useSignup";
 
 const SignupComponent = () => {
   const [name, setName] = useState("");
@@ -34,6 +35,12 @@ const SignupComponent = () => {
       setLoading(false);
     }
   };
+
+  const { mutate, isPending, isError, error, data } = useSignup();
+
+const handleSignup = (formData: SignupFormData) => {
+ 
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-slate-800 px-4">

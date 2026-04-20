@@ -5,26 +5,82 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { ImSpinner2 } from "react-icons/im";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useLogin } from "@/lib/hooks/api/useLogin";
+import { useRouter } from "next/navigation";
 
+type FormErrors = {
+  email?: string;
+  password?: string;
+  general?: string;
+};
 const LoginComponent = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+
+  const { mutate, isError, isSuccess, isPending } = useLogin();
+
+  const formData = {
+    email,
+    password,
+  };
+
+  // basic validation
+  const validate = (): FormErrors => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Enter a valid email";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    return newErrors;
+  };
+
+  const route = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // simulate API call
-      await new Promise((res) => setTimeout(res, 1500));
-      console.log({ email, password });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
     }
+    mutate(formData, {
+      onSuccess: (data) => {
+        console.log("first login res>>>>>>>...", data.token);
+        // localStorage.setItem("access_token", data.access_token);
+        // localStorage.setItem("refresh_token", data.refresh_token);
+        document.cookie = `access_token=${data.token}; path=/; max-age=3600`;
+        // document.cookie = `refresh_token=${data.token}; path=/; max-age=3600`;
+
+        route.push("/home");
+      },
+      onError: (error: { message: string }) => {
+  console.error("Login error:", error.message);
+},
+    });
+
+    //   try {
+    //     // simulate API call
+    //     await new Promise((res) => setTimeout(res, 1500));
+    //     console.log({ email, password });
+    //   } catch (err) {
+    //     console.error(err);
+    //   } finally {
+    //     setLoading(false);
+    //   }
   };
 
   return (
@@ -55,6 +111,9 @@ const LoginComponent = () => {
                 className="w-full mt-1 px-4 py-3 rounded-xl bg-white/10 text-white placeholder-gray-400 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
                 placeholder="you@example.com"
               />
+               {errors.email && (
+              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+            )}
             </div>
 
             {/* Password */}
@@ -74,9 +133,17 @@ const LoginComponent = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
                 >
-                  {showPassword ? <AiOutlineEyeInvisible size={18} /> : <AiOutlineEye size={18} />}
+                  {showPassword ? (
+                    <AiOutlineEyeInvisible size={18} />
+                  ) : (
+                    <AiOutlineEye size={18} />
+                  )}
                 </button>
               </div>
+
+               {errors.password && (
+              <p className="mt-1 text-xs text-red-500">{errors.password}</p>
+            )}
             </div>
 
             {/* Remember + Forgot */}
@@ -85,10 +152,7 @@ const LoginComponent = () => {
                 <input type="checkbox" className="accent-cyan-500" />
                 Remember me
               </label>
-              <button
-                type="button"
-                className="text-cyan-400 hover:underline"
-              >
+              <button type="button" className="text-cyan-400 hover:underline">
                 Forgot password?
               </button>
             </div>
@@ -96,10 +160,10 @@ const LoginComponent = () => {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 transition font-semibold text-black flex items-center justify-center gap-2"
             >
-              {loading ? (
+              {isPending ? (
                 <>
                   <ImSpinner2 className="animate-spin" size={18} />
                   Logging in...
@@ -129,8 +193,11 @@ const LoginComponent = () => {
 
           {/* Footer */}
           <p className="text-center text-gray-400 text-sm mt-6">
-            Don’t have an account?{' '}
-            <Link href="/signup" className="text-cyan-400 cursor-pointer hover:underline">
+            Don’t have an account?{" "}
+            <Link
+              href="/signup"
+              className="text-cyan-400 cursor-pointer hover:underline"
+            >
               Sign up
             </Link>
           </p>
@@ -138,6 +205,6 @@ const LoginComponent = () => {
       </motion.div>
     </div>
   );
-}
+};
 
 export default LoginComponent;

@@ -1,11 +1,12 @@
-import React from 'react'
+import React from 'react';
+import UsersComponent from '@/Components/DashboardComponent/UsersComponent';
 
- 
-
-const page = () => {
+const UsersPage = () => {
   return (
-    <div>users page</div>
+    <div>
+      <UsersComponent />
+    </div>
   )
 }
 
-export default page
+export default UsersPage;

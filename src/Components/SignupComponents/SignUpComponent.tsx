@@ -6,6 +6,8 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { ImSpinner2 } from "react-icons/im";
 import Link from "next/link";
 import { SignupFormData, useSignup } from "@/lib/hooks/api/useSignup";
+import { useRouter } from "next/navigation";
+
 
 const SignupComponent = () => {
   const [name, setName] = useState("");
@@ -15,6 +17,10 @@ const SignupComponent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+   const { mutate, isPending, isError, error, data } = useSignup();
+     const route = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,17 +32,44 @@ const SignupComponent = () => {
 
     setLoading(true);
 
-    try {
-      await new Promise((res) => setTimeout(res, 1500));
-      console.log({ name, email, password });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    // try {
+    //   await new Promise((res) => setTimeout(res, 1500));
+    //   console.log({ name, email, password });
+    // } catch (err) {
+    //   console.error(err);
+    // } finally {
+    //   setLoading(false);
+    // }
+    const formData: SignupFormData = {
+      name,
+      email,
+      password,
+    };
+
+    setApiError("");
+    mutate(formData,{
+      onSuccess: (responseData) => {
+        console.log("Signup successful! Response:", responseData);
+        // Ensure token is saved in cookies just like login
+        const token = (responseData as any)?.data?.token;
+        if (token) {
+          document.cookie = `token=${token}; path=/; max-age=3600; SameSite=Lax`;
+        }
+        route.push("/dashboard");
+      },
+      onError: (error) => {
+        console.error("Signup failed:", error);
+        setApiError(error.message);
+      },
+      onSettled: () => {
+        setLoading(false); // Stop loading spinner regardless of success or error
+      },
+       
+    });
+
   };
 
-  const { mutate, isPending, isError, error, data } = useSignup();
+
 
 const handleSignup = (formData: SignupFormData) => {
  
@@ -152,6 +185,11 @@ const handleSignup = (formData: SignupFormData) => {
                 "Sign Up"
               )}
             </button>
+            {apiError && (
+              <p className="text-center text-sm text-red-500">
+                {apiError}
+              </p>
+            )}
           </form>
 
           <p className="text-center text-gray-400 text-sm mt-6">

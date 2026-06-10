@@ -5,7 +5,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { ImSpinner2 } from "react-icons/im";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useLogin } from "@/lib/hooks/api/useLogin";
+import { useLogin, FromData } from "@/lib/hooks/api/useLogin";
 import { useRouter } from "next/navigation";
 
 type FormErrors = {
@@ -18,11 +18,10 @@ const LoginComponent = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [loading, setLoading] = useState(false);
 
-  const { mutate, isError, isSuccess, isPending } = useLogin();
+  const { mutateAsync, isPending } = useLogin();
 
-  const formData = {
+  const formData: FromData = {
     email,
     password,
   };
@@ -48,39 +47,32 @@ const LoginComponent = () => {
 
   const route = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
 
-      const validationErrors = validate();
+    const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    mutate(formData, {
-      onSuccess: (data) => {
-        console.log("first login res>>>>>>>...", data.token);
-        // localStorage.setItem("access_token", data.access_token);
-        // localStorage.setItem("refresh_token", data.refresh_token);
-        document.cookie = `access_token=${data.token}; path=/; max-age=3600`;
-        // document.cookie = `refresh_token=${data.token}; path=/; max-age=3600`;
 
-        route.push("/home");
-      },
-      onError: (error: { message: string }) => {
-  console.error("Login error:", error.message);
-},
-    });
+    setErrors({});
 
-    //   try {
-    //     // simulate API call
-    //     await new Promise((res) => setTimeout(res, 1500));
-    //     console.log({ email, password });
-    //   } catch (err) {
-    //     console.error(err);
-    //   } finally {
-    //     setLoading(false);
-    //   }
+    try {
+      const data = await mutateAsync(formData);
+
+      console.log("token>>>>>", data.data.token);
+      if (data?.data?.token) {
+        document.cookie = `token=${data.data.token}; path=/; max-age=3600; SameSite=Lax`;
+      }
+      route.push("/dashboard");
+    } catch (submitError) {
+      const message =
+        submitError instanceof Error
+          ? submitError.message
+          : "Login failed. Please try again.";
+      setErrors({ general: message });
+    }
   };
 
   return (
@@ -111,9 +103,9 @@ const LoginComponent = () => {
                 className="w-full mt-1 px-4 py-3 rounded-xl bg-white/10 text-white placeholder-gray-400 border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
                 placeholder="you@example.com"
               />
-               {errors.email && (
-              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-            )}
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+              )}
             </div>
 
             {/* Password */}
@@ -141,9 +133,9 @@ const LoginComponent = () => {
                 </button>
               </div>
 
-               {errors.password && (
-              <p className="mt-1 text-xs text-red-500">{errors.password}</p>
-            )}
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-500">{errors.password}</p>
+              )}
             </div>
 
             {/* Remember + Forgot */}
@@ -161,7 +153,7 @@ const LoginComponent = () => {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 transition font-semibold text-black flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 transition font-semibold text-black flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isPending ? (
                 <>
@@ -172,6 +164,12 @@ const LoginComponent = () => {
                 "Login"
               )}
             </button>
+
+            {errors.general && (
+              <p className="text-center text-sm text-red-500">
+                {errors.general}
+              </p>
+            )}
           </form>
 
           {/* Divider */}

@@ -15,7 +15,7 @@ export type SignupResponse = {
 const fetchSignup = async (
   formData: SignupFormData
 ): Promise<SignupResponse> => {
-  const url = "http://localhost:8000/api/auth/signup";
+  const url = "http://localhost:8000/app/auth/register";
 
   try {
     const response = await fetch(url, {

@@ -4,13 +4,24 @@ export interface FromData {
   email: string;
   password: string;
 }
-type ApiResponse = {
-  message: string;
-  status: boolean;
+
+export interface LoginResponseData {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
   token: string;
+}
+
+export type ApiResponse = {
+  status: string;
+  message: string;
+  data: LoginResponseData;
 };
+
 const fetchLogin = async (formData: FromData) => {
-  const url = "http://localhost:8000/api/auth/signin";
+  const url = "http://localhost:8000/app/auth/login";
 
   try {
     const response = await fetch(url, {
@@ -21,13 +32,15 @@ const fetchLogin = async (formData: FromData) => {
       body: JSON.stringify(formData),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        console.log("Login failed with status:", response.status);
-      throw new Error("Login failed",);
+      const errorMessage =
+        data?.message || "Login failed. Please check your credentials.";
+      throw new Error(errorMessage);
     }
-    const data: ApiResponse = await response.json();
-    console.log("Login successful", data);
-    return data;
+
+    return data as ApiResponse;
   } catch (error) {
     console.error(error);
     throw error;
@@ -37,6 +50,6 @@ const fetchLogin = async (formData: FromData) => {
 export const useLogin = () => {
   return useMutation<ApiResponse, Error, FromData>({
     mutationKey: ["login"],
-    mutationFn: (formData: FromData) => fetchLogin(formData),
+    mutationFn: fetchLogin,
   });
 };

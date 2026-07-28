@@ -1,11 +1,11 @@
-import React from 'react'
+import React from "react";
+import SettingsComponent from "@/Components/DashboardComponent/Settings/SettingsComponent";
 
+export const metadata = {
+  title: "Settings - DevDairy Dashboard",
+  description: "Manage admin profile, security settings, and notification preferences",
+};
 
-
-const page = () => {
-  return (
-    <div>settings page</div>
-  )
+export default function SettingsPage() {
+  return <SettingsComponent />;
 }
-
-export default page

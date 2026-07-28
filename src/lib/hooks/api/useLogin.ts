@@ -10,6 +10,7 @@ export interface LoginResponseData {
     id: string;
     name: string;
     email: string;
+    role?: string;
   };
   token: string;
 }
@@ -21,7 +22,8 @@ export type ApiResponse = {
 };
 
 const fetchLogin = async (formData: FromData) => {
-  const url = "http://localhost:8000/app/auth/login";
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/app";
+  const url = `${baseUrl}/auth/login`;
 
   try {
     const response = await fetch(url, {

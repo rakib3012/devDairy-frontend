@@ -17,7 +17,8 @@ export type UsersResponse = {
 };
 
 const fetchUsers = async (): Promise<UsersResponse> => {
-  const url = "http://localhost:8000/app/users";
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/app";
+  const url = `${baseUrl}/users`;
   
   // Get token from cookie
   let token = null;

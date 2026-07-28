@@ -6,8 +6,10 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { ImSpinner2 } from "react-icons/im";
 import Link from "next/link";
 import { SignupFormData, useSignup } from "@/lib/hooks/api/useSignup";
-import { useRouter } from "next/navigation";
-
+import { Button } from "@/Components/ui/button";
+import { Input } from "@/Components/ui/input";
+import { Label } from "@/Components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/Components/ui/card";
 
 const SignupComponent = () => {
   const [name, setName] = useState("");
@@ -16,192 +18,167 @@ const SignupComponent = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState("");
   const [apiError, setApiError] = useState("");
 
-   const { mutate, isPending, isError, error, data } = useSignup();
-     const route = useRouter();
+  const { mutate, isPending } = useSignup();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setValidationError("");
+    setApiError("");
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
+    if (!name || !email || !password) {
+      setValidationError("All fields are required.");
       return;
     }
 
-    setLoading(true);
+    if (password !== confirmPassword) {
+      setValidationError("Passwords do not match.");
+      return;
+    }
 
-    // try {
-    //   await new Promise((res) => setTimeout(res, 1500));
-    //   console.log({ name, email, password });
-    // } catch (err) {
-    //   console.error(err);
-    // } finally {
-    //   setLoading(false);
-    // }
-    const formData: SignupFormData = {
-      name,
-      email,
-      password,
-    };
+    const formData: SignupFormData = { name, email, password };
 
-    setApiError("");
-    mutate(formData,{
+    mutate(formData, {
       onSuccess: (responseData) => {
-        console.log("Signup successful! Response:", responseData);
-        // Ensure token is saved in cookies just like login
-        const token = (responseData as any)?.data?.token;
+        const token = (responseData as { data?: { token?: string } })?.data?.token;
         if (token) {
-          document.cookie = `token=${token}; path=/; max-age=3600; SameSite=Lax`;
+          document.cookie = `token=${token}; path=/; max-age=1296000; SameSite=Lax`;
         }
-        route.push("/dashboard");
+        window.location.href = "/dashboard";
       },
-      onError: (error) => {
-        console.error("Signup failed:", error);
-        setApiError(error.message);
+      onError: (err) => {
+        setApiError(err.message || "Failed to create account.");
       },
-      onSettled: () => {
-        setLoading(false); // Stop loading spinner regardless of success or error
-      },
-       
     });
-
   };
 
-
-
-const handleSignup = (formData: SignupFormData) => {
- 
-};
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-slate-800 px-4">
+    <div className="min-h-[calc(100vh-65px)] flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 transition-colors duration-300">
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.4 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-8">
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-white">Create Account</h1>
-            <p className="text-gray-400 text-sm mt-2">
-              Sign up to get started
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className="text-sm text-gray-300">Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full mt-1 px-4 py-3 rounded-xl bg-white/10 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                placeholder="Your name"
-              />
+        <Card className="bg-white/90 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-2xl text-slate-900 dark:text-slate-100 p-2 rounded-2xl">
+          <CardHeader className="space-y-1.5 text-center">
+            <div className="mx-auto h-12 w-12 rounded-2xl bg-[#3897ff] flex items-center justify-center font-black text-white text-xl shadow-lg shadow-blue-500/25 mb-2">
+              D
             </div>
+            <CardTitle className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Create Account</CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+              Join DevDairy to publish, read, and manage developer articles
+            </CardDescription>
+          </CardHeader>
 
-            {/* Email */}
-            <div>
-              <label className="text-sm text-gray-300">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full mt-1 px-4 py-3 rounded-xl bg-white/10 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="text-sm text-gray-300">Password</label>
-              <div className="relative mt-1">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 pr-12"
-                  placeholder="••••••••"
+          <CardContent className="space-y-4 pt-2">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="text-xs text-slate-700 dark:text-slate-300 font-semibold">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 focus-visible:ring-blue-500/50"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                >
-                  {showPassword ? (
-                    <AiOutlineEyeInvisible size={18} />
-                  ) : (
-                    <AiOutlineEye size={18} />
-                  )}
-                </button>
               </div>
-            </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label className="text-sm text-gray-300">Confirm Password</label>
-              <div className="relative mt-1">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 text-white border border-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 pr-12"
-                  placeholder="••••••••"
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs text-slate-700 dark:text-slate-300 font-semibold">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 focus-visible:ring-blue-500/50"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                >
-                  {showConfirmPassword ? (
-                    <AiOutlineEyeInvisible size={18} />
-                  ) : (
-                    <AiOutlineEye size={18} />
-                  )}
-                </button>
               </div>
-            </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 transition font-semibold text-black flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <ImSpinner2 className="animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Sign Up"
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs text-slate-700 dark:text-slate-300 font-semibold">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 focus-visible:ring-blue-500/50 pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-0 top-0 h-full px-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-transparent"
+                  >
+                    {showPassword ? <AiOutlineEyeInvisible className="h-4 w-4" /> : <AiOutlineEye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword" className="text-xs text-slate-700 dark:text-slate-300 font-semibold">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 focus-visible:ring-blue-500/50 pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-0 top-0 h-full px-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-transparent"
+                  >
+                    {showConfirmPassword ? <AiOutlineEyeInvisible className="h-4 w-4" /> : <AiOutlineEye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              {(validationError || apiError) && (
+                <div className="bg-red-500/10 border border-red-500/30 p-2.5 rounded-lg text-xs text-red-500 dark:text-red-400 text-center font-medium">
+                  {validationError || apiError}
+                </div>
               )}
-            </button>
-            {apiError && (
-              <p className="text-center text-sm text-red-500">
-                {apiError}
-              </p>
-            )}
-          </form>
 
-          <p className="text-center text-gray-400 text-sm mt-6">
-          <span>  Already have an account? </span>
-            <Link href="/login" className="text-cyan-400 cursor-pointer hover:underline">
-              Login
-            </Link>
-          </p>
-        </div>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full bg-[#3897ff] hover:bg-[#2887ef] text-white font-extrabold h-11 rounded-xl shadow-md shadow-blue-500/25 cursor-pointer border-none"
+              >
+                {isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <ImSpinner2 className="animate-spin h-4 w-4" /> Creating Account...
+                  </span>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-4 pt-2">
+            <p className="text-center text-xs text-slate-600 dark:text-slate-400 font-medium">
+              Already have an account?{" "}
+              <Link href="/login" className="text-blue-600 dark:text-blue-400 font-extrabold hover:underline">
+                Sign In
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
       </motion.div>
     </div>
   );
-}
+};
 
 export default SignupComponent;

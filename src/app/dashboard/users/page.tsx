@@ -1,5 +1,5 @@
 import React from 'react';
-import UsersComponent from '@/Components/DashboardComponent/UsersComponent';
+import UsersComponent from '@/Components/DashboardComponent/Users/UsersComponent';
 
 const UsersPage = () => {
   return (

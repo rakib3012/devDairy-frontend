@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-const BASE_URL = "http://localhost:8000/app/users";
+const getBaseUrl = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/app";
+const BASE_URL = `${getBaseUrl()}/users`;
 
 const getToken = (): string => {
   if (typeof document === "undefined") return "";
@@ -47,7 +48,7 @@ export interface UpdateUserPayload {
   id: string;
   name?: string;
   email?: string;
-  role?: "user" | "admin";
+  role?: "user" | "admin" | "writer";
   password?: string;
 }
 
